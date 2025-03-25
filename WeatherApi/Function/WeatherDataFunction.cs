@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace WeatherApi.Functions
+namespace WeatherApi.Function
 {
     public class WeatherDataFunction
     {
-        private readonly ILogger<IngestionFunction> _logger;
+        private readonly ILogger<WeatherDataFunction> _logger;
 
-        public WeatherDataFunction(ILogger<IngestionFunction> logger)
+        public WeatherDataFunction(ILogger<WeatherDataFunction> logger)
         {
             _logger = logger;
         }
