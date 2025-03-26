@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WeatherApi.Model;
+using WeatherApi.Data.Model;
 
-namespace WeatherApi.Service
+namespace WeatherApi.Data.Repository
 {
-    public interface IWeatherDataService
+    public interface IWeatherDataRepository
     {
         Task SaveWeatherData(IEnumerable<WeatherDatum> weatherDatum);
         Task<IEnumerable<WeatherDatum>> GetAllWeatherData();
     }
 
-    public class WeatherDataService : IWeatherDataService
+    public class WeatherDataRepository : IWeatherDataRepository
     {
         public Task<IEnumerable<WeatherDatum>> GetAllWeatherData()
         {
@@ -25,5 +25,4 @@ namespace WeatherApi.Service
             throw new NotImplementedException();
         }
     }
-
 }

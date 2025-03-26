@@ -3,19 +3,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace WeatherApi.Function
+namespace WeatherApi.Functions
 {
     public class WeatherDataFunction
     {
-        private readonly ILogger<WeatherDataFunction> _logger;
+        private readonly ILogger<IngestionFunction> _logger;
 
-        public WeatherDataFunction(ILogger<WeatherDataFunction> logger)
+        public WeatherDataFunction(ILogger<IngestionFunction> logger)
         {
             _logger = logger;
         }
 
         [Function("WeatherDataFunction")]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             return new OkObjectResult("Welcome to Azure Functions!");
