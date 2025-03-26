@@ -10,6 +10,7 @@ var host = new HostBuilder()
     {
         services.AddServices();
         services.AddDataServices();
+        services.AddLogging();
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
     })

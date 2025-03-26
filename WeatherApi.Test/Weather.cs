@@ -1,7 +1,7 @@
 namespace WeatherApi.Test
 {
     [TestClass]
-    public class UnitTest1
+    public class Weather
     {
         [TestMethod]
         public void TestMethod1()

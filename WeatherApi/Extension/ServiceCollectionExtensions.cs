@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WeatherApi.Data.Repository;
+using WeatherApi.Service;
 
 namespace WeatherApi.Extension
 {
@@ -12,7 +12,7 @@ namespace WeatherApi.Extension
     {
         public static void AddServices(this IServiceCollection services)
         {
-            services.AddSingleton<IWeatherDataRepository, WeatherDataRepository>();
+            services.AddSingleton<IWeatherDataService, WeatherDataService>();
         }
     }
 }

@@ -7,9 +7,9 @@ namespace WeatherApi.Functions
 {
     public class WeatherDataFunction
     {
-        private readonly ILogger<IngestionFunction> _logger;
+        private readonly ILogger<WeatherDataFunction> _logger;
 
-        public WeatherDataFunction(ILogger<IngestionFunction> logger)
+        public WeatherDataFunction(ILogger<WeatherDataFunction> logger)
         {
             _logger = logger;
         }
