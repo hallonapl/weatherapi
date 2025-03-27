@@ -15,6 +15,7 @@ namespace WeatherApi.Service
     {
         Task SaveWeatherPayload(WeatherPayload payload);
         Task<IEnumerable<WeatherPayload>> GetAllWeatherData();
+        Task<WeatherPayload> GetAnyWeatherDatum();
     }
 
     public class WeatherDataService : IWeatherDataService
@@ -34,10 +35,6 @@ namespace WeatherApi.Service
             var result = new List<WeatherPayload>();
             await foreach (var item in data)
             {
-                if (item == null)
-                {
-                    throw new Exception("Null value is not valid.");
-                }
                 result.Add(item.WeatherPayload);
             }
             return result;
@@ -66,6 +63,12 @@ namespace WeatherApi.Service
             //    ));
             //}
             //return result;
+        }
+
+        public async Task<WeatherPayload> GetAnyWeatherDatum()
+        {
+            var data = await _weatherDataRepository.GetAnyWeatherDatum();
+            return data.WeatherPayload;
         }
 
         public Task SaveWeatherPayload(WeatherPayload payload)

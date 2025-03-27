@@ -16,7 +16,8 @@ namespace WeatherApi.Repository
     public interface IWeatherDataRepository
     {
         Task SaveWeatherPayload(WeatherBlob weatherDatum);
-        IAsyncEnumerable<WeatherBlob?> GetAllWeatherData();
+        IAsyncEnumerable<WeatherBlob> GetAllWeatherData();
+        Task<WeatherBlob> GetAnyWeatherDatum();
     }
 
     public class WeatherDataRepository : IWeatherDataRepository
@@ -32,7 +33,7 @@ namespace WeatherApi.Repository
             _clientFactory = clientFactory;
         }
 
-        public async IAsyncEnumerable<WeatherBlob?> GetAllWeatherData()
+        public async IAsyncEnumerable<WeatherBlob> GetAllWeatherData()
         {
             var client = _clientFactory.CreateBlobServiceClient();
             var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
@@ -45,10 +46,29 @@ namespace WeatherApi.Repository
                     var weatherBlob = await blobClient.DownloadContentAsync();
                     var json = weatherBlob.Value.Content.ToString();
                     var result = JsonSerializer.Deserialize<WeatherBlob>(json);
-                    yield return result;
+                    if (result == null)
+                    {
+                        throw new Exception("Cannot deserialize blob");
+                    }
+                    yield return result!;
                 }
             }
+        }
 
+        public async Task<WeatherBlob> GetAnyWeatherDatum()
+        {
+            var client = _clientFactory.CreateBlobServiceClient();
+            var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
+            var blob = container.GetBlobs().First();
+            var blobClient = container.GetBlobClient(blob.Name);
+            var weatherBlob = await blobClient.DownloadContentAsync();
+            var json = weatherBlob.Value.Content.ToString();
+            var result = JsonSerializer.Deserialize<WeatherBlob>(json);
+            if (result == null)
+            {
+                throw new Exception("Cannot deserialize blob");
+            }
+            return result!;
         }
 
         public Task SaveWeatherPayload(WeatherBlob blob)
