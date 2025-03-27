@@ -13,72 +13,56 @@ namespace WeatherApi.Service
 {
     public interface IWeatherDataService
     {
-        Task SaveWeatherPayload(WeatherPayload payload);
-        Task<IEnumerable<WeatherPayload>> GetAllWeatherData();
-        Task<WeatherPayload> GetAnyWeatherDatum();
+        Task<Guid> SaveWeatherReportAsync(WeatherPayload payload);
+        Task<IEnumerable<WeatherPayload>> GetAllWeatherDataAsync();
+        Task<WeatherPayload> GetWeatherReportAsync(Guid id);
     }
 
     public class WeatherDataService : IWeatherDataService
     {
         private readonly ILogger<WeatherDataService> _logger;
         private readonly IWeatherDataRepository _weatherDataRepository;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
-        public WeatherDataService(ILogger<WeatherDataService> logger, IWeatherDataRepository weatherDataRepository)
+        public WeatherDataService(ILogger<WeatherDataService> logger, IWeatherDataRepository weatherDataRepository, IDateTimeProvider dateTimeProvider)
         {
             _logger = logger;
             _weatherDataRepository = weatherDataRepository;
+            _dateTimeProvider = dateTimeProvider;
         }
 
-        public async Task<IEnumerable<WeatherPayload>> GetAllWeatherData()
+        public async Task<IEnumerable<WeatherPayload>> GetAllWeatherDataAsync()
         {
-            var data = _weatherDataRepository.GetAllWeatherData();
+            var data = _weatherDataRepository.GetWeatherDataAsync();
             var result = new List<WeatherPayload>();
             await foreach (var item in data)
             {
                 result.Add(item.WeatherPayload);
             }
             return result;
-
-            //var result = new List<WeatherResponse>();
-            //await foreach (var item in data)
-            //{
-            //    if (item == null)
-            //    {
-            //        throw new Exception("Null value is not valid.");
-            //    }
-            //    result.Add(new WeatherResponse(
-            //        City: item.WeatherDescription.Name,
-            //        Country: item.WeatherDescription.Sys.Country,
-            //        Temperature:item.WeatherDescription.Main.Temp,
-            //        FeelsLike:item.WeatherDescription.Main.FeelsLike,
-            //        MinTemperature: item.WeatherDescription.Main.TempMin,
-            //        MaxTemperature: item.WeatherDescription.Main.TempMax,
-            //        Pressure: item.WeatherDescription.Main.Pressure,
-            //        Humidity: item.WeatherDescription.Main.Humidity,
-            //        WindSpeed: item.WeatherDescription.Wind.Speed,
-            //        WindDegree: item.WeatherDescription.Wind.Deg,
-            //        Cloudiness: item.WeatherDescription.Clouds.All,
-            //        Visibility: item.WeatherDescription.Visibility,
-            //        TimeStamp: item.TimeStamp
-            //    ));
-            //}
-            //return result;
         }
 
-        public async Task<WeatherPayload> GetAnyWeatherDatum()
+        public async Task<WeatherPayload> GetWeatherReportAsync(Guid id)
         {
-            var data = await _weatherDataRepository.GetAnyWeatherDatum();
+            var data = await _weatherDataRepository.GetWeatherReportBlobAsync(id);
             return data.WeatherPayload;
         }
 
-        public Task SaveWeatherPayload(WeatherPayload payload)
+        public async Task<Guid> SaveWeatherReportAsync(WeatherPayload payload)
         {
+            //Create weather api client
+            //Get data from weather api client
+            //Log success or failure uisng weather log service
+            //Save data to repository
+
+            var newId = Guid.NewGuid();
             var blob = new WeatherBlob(
-                Id: Guid.NewGuid(),
-                FetchedTimeStamp: DateTime.UtcNow,
+                Id: newId,
+                FetchedTimeStamp: _dateTimeProvider.UtcNow,
                 WeatherPayload: payload
                 );
-            return _weatherDataRepository.SaveWeatherPayload(blob);
+            await _weatherDataRepository.SaveWeatherPayloadAsync(blob);
+            return newId;
         }
     }
 

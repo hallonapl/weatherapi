@@ -32,15 +32,15 @@ namespace WeatherApi.Test.Data
         {
             // Arrange
             var dummyData = _fixture.CreateMany<WeatherBlob>(5);
-            A.CallTo(() => _repository.GetAllWeatherData()).Returns(dummyData.ToAsyncEnumerable());
+            A.CallTo(() => _repository.GetWeatherDataAsync()).Returns(dummyData.ToAsyncEnumerable());
 
             // Act
-            var result = await sut.GetAllWeatherData();
+            var result = await sut.GetAllWeatherDataAsync();
 
             // Assert
             result.Should().NotBeNull();
             result.Count().Should().Be(5);
-            A.CallTo(() => _repository.GetAllWeatherData()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _repository.GetWeatherDataAsync()).MustHaveHappenedOnceExactly();
         }
 
         [TestMethod]
@@ -50,10 +50,10 @@ namespace WeatherApi.Test.Data
             var weatherDatum = _fixture.Create<WeatherPayload>();
 
             // Act
-            await sut.SaveWeatherPayload(weatherDatum);
+            await sut.SaveWeatherReportAsync(weatherDatum);
 
             // Assert
-            A.CallTo(() => _repository.SaveWeatherPayload(A<WeatherBlob>._)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _repository.SaveWeatherPayloadAsync(A<WeatherBlob>._)).MustHaveHappenedOnceExactly();
         }
 
         [TestMethod]
@@ -61,10 +61,10 @@ namespace WeatherApi.Test.Data
         {
             // Arrange
             var actualWeather = _fixture.Create<WeatherPayload>();
-            A.CallTo(() => _repository.SaveWeatherPayload(A<WeatherBlob>._)).Throws<Exception>();
+            A.CallTo(() => _repository.SaveWeatherPayloadAsync(A<WeatherBlob>._)).Throws<Exception>();
 
             // Act
-            var result = () => sut.SaveWeatherPayload(actualWeather);
+            var result = () => sut.SaveWeatherReportAsync(actualWeather);
 
             // Assert
             await result.Should().ThrowAsync<Exception>();

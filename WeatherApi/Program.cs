@@ -13,7 +13,7 @@ var host = new HostBuilder()
         services.AddOptions<StorageSettings>()
                 .Configure<IConfiguration>((settings, configuration) =>
                 {
-                    configuration.GetSection("BlobStorageSettings").Bind(settings);
+                    configuration.GetSection("StorageSettings").Bind(settings);
                 });
         services.AddServices(context.Configuration.GetConnectionString("StorageAccount"));
         services.AddLogging();

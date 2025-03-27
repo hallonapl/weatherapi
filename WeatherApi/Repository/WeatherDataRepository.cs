@@ -9,15 +9,16 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using WeatherApi.Configuration;
 using WeatherApi.DataAccess;
+using WeatherApi.Exceptions;
 using WeatherApi.Model;
 
 namespace WeatherApi.Repository
 {
     public interface IWeatherDataRepository
     {
-        Task SaveWeatherPayload(WeatherBlob weatherDatum);
-        IAsyncEnumerable<WeatherBlob> GetAllWeatherData();
-        Task<WeatherBlob> GetAnyWeatherDatum();
+        Task SaveWeatherPayloadAsync(WeatherBlob weatherDatum);
+        IAsyncEnumerable<WeatherBlob> GetWeatherDataAsync();
+        Task<WeatherBlob> GetWeatherReportBlobAsync(Guid id);
     }
 
     public class WeatherDataRepository : IWeatherDataRepository
@@ -33,7 +34,7 @@ namespace WeatherApi.Repository
             _clientFactory = clientFactory;
         }
 
-        public async IAsyncEnumerable<WeatherBlob> GetAllWeatherData()
+        public async IAsyncEnumerable<WeatherBlob> GetWeatherDataAsync()
         {
             var client = _clientFactory.CreateBlobServiceClient();
             var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
@@ -48,30 +49,34 @@ namespace WeatherApi.Repository
                     var result = JsonSerializer.Deserialize<WeatherBlob>(json);
                     if (result == null)
                     {
-                        throw new Exception("Cannot deserialize blob");
+                        throw new BlobSerializationException($"Cannot deserialize blob with name {blob.Name}");
                     }
                     yield return result!;
                 }
             }
         }
 
-        public async Task<WeatherBlob> GetAnyWeatherDatum()
+        public async Task<WeatherBlob> GetWeatherReportBlobAsync(Guid id)
         {
             var client = _clientFactory.CreateBlobServiceClient();
             var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
-            var blob = container.GetBlobs().First();
-            var blobClient = container.GetBlobClient(blob.Name);
+            var blob = container.FindBlobsByTags($"id={id}").FirstOrDefault();
+            if (blob is null)
+            {
+                throw new BlobNotFoundException($"No blob with id {id} found in storage");
+            }
+            var blobClient = container.GetBlobClient(blob.BlobName);
             var weatherBlob = await blobClient.DownloadContentAsync();
             var json = weatherBlob.Value.Content.ToString();
-            var result = JsonSerializer.Deserialize<WeatherBlob>(json);
+            var result = JsonSerializer.Deserialize<WeatherBlob>(json, SerializerOptions.PayloadSerializerOptions);
             if (result == null)
             {
-                throw new Exception("Cannot deserialize blob");
+                throw new BlobSerializationException($"Cannot deserialize blob with name {blob.BlobName}, id {id}");
             }
             return result!;
         }
 
-        public Task SaveWeatherPayload(WeatherBlob blob)
+        public Task SaveWeatherPayloadAsync(WeatherBlob blob)
         {
             throw new Exception("Fail!");
         }
