@@ -1,15 +1,21 @@
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using WeatherApi.Configuration;
 using WeatherApi.Extension;
-using WeatherApi.Data.Extension;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
-    .ConfigureServices(services =>
+	
+    .ConfigureServices((context, services) =>
     {
-        services.AddServices();
-        services.AddDataServices();
+        services.AddOptions<StorageSettings>()
+                .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    configuration.GetSection("BlobStorageSettings").Bind(settings);
+                });
+        services.AddServices(context.Configuration.GetConnectionString("StorageAccount"));
         services.AddLogging();
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();

@@ -1,18 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WeatherApi.DataAccess;
+using WeatherApi.Repository;
 using WeatherApi.Service;
 
 namespace WeatherApi.Extension
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddServices(this IServiceCollection services)
+        public static void AddServices(this IServiceCollection services, string blobStorageConnectionString)
         {
             services.AddSingleton<IWeatherDataService, WeatherDataService>();
+            services.AddScoped<IWeatherDataRepository, WeatherDataRepository>();
+            services.AddSingleton<BlobServiceClientFactory>(services =>
+            {
+                return new BlobServiceClientFactory(blobStorageConnectionString);
+            });
         }
     }
 }

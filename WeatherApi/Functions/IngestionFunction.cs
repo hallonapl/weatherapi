@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 
 namespace WeatherApi
 {
-    public class Function1
+    public class IngestionFunction
     {
-        private readonly ILogger<Function1> _logger;
+        private readonly ILogger<IngestionFunction> _logger;
 
-        public Function1(ILogger<Function1> logger)
+        public IngestionFunction(ILogger<IngestionFunction> logger)
         {
             _logger = logger;
         }

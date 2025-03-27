@@ -1,11 +1,16 @@
-targetScope = 'subscription'
+@description('The name of the storage account')
+param storageAccountName string
+
+targetScope = 'resourceGroup'
 
 module storage 'Storage/main.bicep' = {
   name: 'storage'
-  scope: resourceGroup('temp')
   params: {
-    storageAccountName: 'temp'
+    storageAccountName: storageAccountName
     kind: 'StorageV2'
     skuName: 'Standard_LRS'
+    blobContainerName: 'weatherdata'
   }
 }
+
+output storageAccountId string = storage.outputs.storageAccountId
