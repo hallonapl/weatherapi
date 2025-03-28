@@ -9,5 +9,6 @@ namespace WeatherApi.Configuration
     public class StorageSettings
     {
         public string? WeatherDataContainerName { get; set; }
+        public string? LogTableName { get; set; }
     }
 }

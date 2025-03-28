@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WeatherApi.Model
+namespace WeatherApi.Model.Persistence
 {
     public record WeatherBlob(
         Guid Id,

@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using WeatherApi.Client;
 using WeatherApi.Model;
+using WeatherApi.Model.Persistence;
 using WeatherApi.Repository;
 using WeatherApi.Service;
 

@@ -11,20 +11,16 @@ namespace WeatherApi.Functions
     {
         private readonly ILogger<WeatherDataFunction> _logger;
         private readonly IWeatherDataService _weatherDataService;
-        private readonly IDateTimeProvider _dateTimeProvider;
 
         public WeatherDataFunction(ILogger<WeatherDataFunction> logger, IWeatherDataService weatherDataService, IDateTimeProvider dateTimeProvider)
         {
             _logger = logger;
             _weatherDataService = weatherDataService;
-            _dateTimeProvider = dateTimeProvider;
         }
 
         [Function(nameof(WeatherDataFunction))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "weather/{id}")] HttpRequest req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "weather/{id}")] HttpRequest req, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("WeatherDataFunction HTTP trigger called at {timeStamp}.", _dateTimeProvider.UtcNow);
-
             if (!Guid.TryParse(req.RouteValues["id"] as string, out var id))
             {
                 return new BadRequestResult();
@@ -32,7 +28,7 @@ namespace WeatherApi.Functions
 
             try
             {
-                var data = await _weatherDataService.LoadWeatherReportAsync(id);
+                var data = await _weatherDataService.LoadWeatherReportAsync(id, cancellationToken);
                 return new OkObjectResult(data);
             }
             catch (BlobNotFoundException ex)

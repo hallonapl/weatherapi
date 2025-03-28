@@ -10,6 +10,9 @@ param kind string
 @description('The weather blob container name')
 param blobContainerName string
 
+@description('The log table name')
+param tableName string
+
 var location = resourceGroup().location
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
@@ -41,7 +44,7 @@ resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2024-01-0
 }
 
 resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2024-01-01' = {
-  name: 'weatherdata'
+  name: tableName
   parent: tableService
   properties: {}
 }

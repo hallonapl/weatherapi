@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure.Storage.Blobs.Models;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
 using System;
@@ -10,15 +12,14 @@ using System.Threading.Tasks;
 using WeatherApi.Configuration;
 using WeatherApi.DataAccess;
 using WeatherApi.Exceptions;
-using WeatherApi.Model;
+using WeatherApi.Model.Persistence;
 
 namespace WeatherApi.Repository
 {
     public interface IWeatherDataRepository
     {
-        Task SaveWeatherPayloadAsync(WeatherBlob weatherDatum);
-        IAsyncEnumerable<WeatherBlob> GetWeatherDataAsync();
-        Task<WeatherBlob> GetWeatherReportBlobAsync(Guid id);
+        Task SaveWeatherPayloadAsync(WeatherBlob weatherDatum, CancellationToken cancellationToken);
+        Task<WeatherBlob> GetWeatherReportBlobByIdAsync(Guid id, CancellationToken cancellationToken);
     }
 
     public class WeatherDataRepository : IWeatherDataRepository
@@ -34,39 +35,17 @@ namespace WeatherApi.Repository
             _clientFactory = clientFactory;
         }
 
-        public async IAsyncEnumerable<WeatherBlob> GetWeatherDataAsync()
+        public async Task<WeatherBlob> GetWeatherReportBlobByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            var client = _clientFactory.CreateBlobServiceClient();
-            var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
-            var blobPages = container.GetBlobsAsync().AsPages();
-            await foreach (var blobPage in blobPages)
-            {
-                foreach (var blob in blobPage.Values)
-                {
-                    var blobClient = container.GetBlobClient(blob.Name);
-                    var weatherBlob = await blobClient.DownloadContentAsync();
-                    var json = weatherBlob.Value.Content.ToString();
-                    var result = JsonSerializer.Deserialize<WeatherBlob>(json);
-                    if (result == null)
-                    {
-                        throw new BlobSerializationException($"Cannot deserialize blob with name {blob.Name}");
-                    }
-                    yield return result!;
-                }
-            }
-        }
-
-        public async Task<WeatherBlob> GetWeatherReportBlobAsync(Guid id)
-        {
-            var client = _clientFactory.CreateBlobServiceClient();
-            var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
-            var blob = container.FindBlobsByTags($"id={id}").FirstOrDefault();
+            var client = _clientFactory.GetBlobServiceClient();
+            var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName ?? throw new Exception("Blob container name configuration missing."));
+            var blob = container.FindBlobsByTags($"id='{id.ToString()}'", cancellationToken).FirstOrDefault();
             if (blob is null)
             {
                 throw new BlobNotFoundException($"No blob with id {id} found in storage");
             }
             var blobClient = container.GetBlobClient(blob.BlobName);
-            var weatherBlob = await blobClient.DownloadContentAsync();
+            var weatherBlob = await blobClient.DownloadContentAsync(cancellationToken);
             var json = weatherBlob.Value.Content.ToString();
             var result = JsonSerializer.Deserialize<WeatherBlob>(json, SerializerOptions.PayloadSerializerOptions);
             if (result == null)
@@ -76,14 +55,19 @@ namespace WeatherApi.Repository
             return result!;
         }
 
-        public async Task SaveWeatherPayloadAsync(WeatherBlob blob)
+        public async Task SaveWeatherPayloadAsync(WeatherBlob blob, CancellationToken cancellationToken)
         {
             try
             {
-                var client = _clientFactory.CreateBlobServiceClient();
-                var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
+                var client = _clientFactory.GetBlobServiceClient();
+                var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName ?? throw new Exception("Blob container name configuration missing."));
+                var blobClient = container.GetBlobClient(blob.Id.ToString());
                 using var blobStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(blob, SerializerOptions.PayloadSerializerOptions)));
-                await container.UploadBlobAsync(blob.Id.ToString(), blobStream);
+                await blobClient.UploadAsync(blobStream, new BlobUploadOptions() 
+                {
+                    Tags = new Dictionary<string, string> { { "id", blob.Id.ToString() } }
+                },
+                cancellationToken);
             }
             catch (Exception ex)
             {

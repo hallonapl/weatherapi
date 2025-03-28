@@ -17,7 +17,7 @@ namespace WeatherApi.DataAccess
             _connectionString = connectionString;
         }
 
-        public BlobServiceClient CreateBlobServiceClient()
+        public BlobServiceClient GetBlobServiceClient()
         {
             return new BlobServiceClient(_connectionString);
         }

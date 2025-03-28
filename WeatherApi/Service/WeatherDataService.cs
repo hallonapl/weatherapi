@@ -1,23 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using WeatherApi.Client;
 using WeatherApi.Model;
+using WeatherApi.Model.Persistence;
 using WeatherApi.Repository;
 
 namespace WeatherApi.Service
 {
     public interface IWeatherDataService
     {
-        Task<Guid> SaveWeatherReportAsync(WeatherPayload payload);
-        Task<IEnumerable<WeatherPayload>> LoadAllWeatherDataAsync();
-        Task<WeatherPayload> GetWeatherReportAsync();
-        Task<WeatherPayload> LoadWeatherReportAsync(Guid id);
+        Task<Guid> SaveWeatherReportAsync(WeatherPayload payload, CancellationToken cancellationToken);
+        Task<WeatherPayload> GetWeatherReportAsync(CancellationToken cancellationToken);
+        Task<WeatherPayload> LoadWeatherReportAsync(Guid id, CancellationToken cancellationToken);
     }
 
     public class WeatherDataService : IWeatherDataService
@@ -36,25 +29,13 @@ namespace WeatherApi.Service
         }
 
 
-        public async Task<IEnumerable<WeatherPayload>> LoadAllWeatherDataAsync()
+        public async Task<WeatherPayload> LoadWeatherReportAsync(Guid id, CancellationToken cancellationToken)
         {
-            var data = _weatherDataRepository.GetWeatherDataAsync();
-            var result = new List<WeatherPayload>();
-            await foreach (var item in data)
-            {
-                result.Add(item.WeatherPayload);
-            }
-            return result;
-        }
-
-
-        public async Task<WeatherPayload> LoadWeatherReportAsync(Guid id)
-        {
-            var data = await _weatherDataRepository.GetWeatherReportBlobAsync(id);
+            var data = await _weatherDataRepository.GetWeatherReportBlobByIdAsync(id, cancellationToken);
             return data.WeatherPayload;
         }
 
-        public async Task<Guid> SaveWeatherReportAsync(WeatherPayload payload)
+        public async Task<Guid> SaveWeatherReportAsync(WeatherPayload payload, CancellationToken cancellationToken)
         {
             var newId = Guid.NewGuid();
             var blob = new WeatherBlob(
@@ -62,13 +43,13 @@ namespace WeatherApi.Service
                 FetchedTimeStamp: _dateTimeProvider.UtcNow,
                 WeatherPayload: payload
                 );
-            await _weatherDataRepository.SaveWeatherPayloadAsync(blob);
+            await _weatherDataRepository.SaveWeatherPayloadAsync(blob, cancellationToken);
             return newId;
         }
 
-        public async Task<WeatherPayload> GetWeatherReportAsync()
+        public async Task<WeatherPayload> GetWeatherReportAsync(CancellationToken cancellationToken)
         {
-            var report = await _weatherClient.GetWeatherReportAsync();
+            var report = await _weatherClient.GetWeatherReportAsync(cancellationToken);
             return report;
         }
     }

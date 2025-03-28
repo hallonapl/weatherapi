@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace WeatherApi.Model
 {
     public record WeatherRequestLog(
-        Guid Id,
-        string City,
-        string Country,
-        DateTime RequestedAt);
+        Guid? Id,
+        bool Success,
+        string Description);
 }

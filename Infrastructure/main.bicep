@@ -10,6 +10,7 @@ module storage 'Storage/main.bicep' = {
     kind: 'StorageV2'
     skuName: 'Standard_LRS'
     blobContainerName: 'weatherdata'
+    tableName: 'weatherlogs'
   }
 }
 

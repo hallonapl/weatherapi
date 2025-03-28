@@ -15,7 +15,7 @@ namespace WeatherApi.Client
 {
     public interface IWeatherClient
     {
-        public Task<WeatherPayload> GetWeatherReportAsync();
+        public Task<WeatherPayload> GetWeatherReportAsync(CancellationToken cancellationToken);
     }
 
     public class WeatherClient : IWeatherClient
@@ -31,16 +31,16 @@ namespace WeatherApi.Client
             _options = options;
         }
 
-        public async Task<WeatherPayload> GetWeatherReportAsync()
+        public async Task<WeatherPayload> GetWeatherReportAsync(CancellationToken cancellationToken)
         {
             var client = _httpClientFactory.CreateClient(nameof(WeatherClient));
-            var response = await client.GetAsync($"?q=London&appid={_options.Value.ApiKey}");
+            var response = await client.GetAsync($"?q=London&appid={_options.Value.ApiKey}", cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Failed to get weather report");
                 throw new WeatherClientFetchException("Failed to get weather report");
             }
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var result = JsonSerializer.Deserialize<WeatherPayload>(content, SerializerOptions.PayloadSerializerOptions);
             if (result is null)
             {
