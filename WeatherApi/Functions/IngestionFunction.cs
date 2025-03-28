@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using WeatherApi.Exceptions;
 using WeatherApi.Service;
 
 namespace WeatherApi
@@ -22,24 +23,26 @@ namespace WeatherApi
         }
 
         [Function(nameof(IngestionFunction))]
-        [FixedDelayRetry(5, "00:00:10")]
-        public void Run([TimerTrigger("0 * * * * *")] TimerInfo timerInfo, FunctionContext context)
+        [FixedDelayRetry(2, "00:00:10")]
+        public async Task Run([TimerTrigger("0 */5 * * * *", RunOnStartup = true)] TimerInfo timerInfo, FunctionContext context)
         {
             _logger.LogInformation("Timer trigger run at {timeStamp}", _dateTimeProvider.UtcNow);
-            //try
-
-            //{
-            //    var data = _weatherDataService.FetchWeatherAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError("Unhandled exception in IngestionFunction: {exception}", ex.Message);
-            //    _weatherLogService.LogWeatherDataErrorAsync(id, data);
-
-            // call service method for fetching, saving and logging weather data
-            // catch exceptions and log errors
-
-
+            try
+            {
+                var data = await _weatherDataService.GetWeatherReportAsync();
+                var id = await _weatherDataService.SaveWeatherReportAsync(data);
+                await _weatherLogService.LogWeatherRequestAsync(id, "some description");
+            }
+            catch (WeatherClientFetchException ex)
+            {
+                _logger.LogInformation("Failed to fetch weather data: {exception}", ex.Message);
+                await _weatherLogService.LogWeatherRequestFailureAsync("Failed to get weather data.");
+            }
+            catch (BlobNotSavedException ex)
+            {
+                _logger.LogInformation("Failed to fetch weather data: {exception}", ex.Message);
+                await _weatherLogService.LogWeatherRequestFailureAsync("Failed to save weather data.");
+            }
         }
     }
 }

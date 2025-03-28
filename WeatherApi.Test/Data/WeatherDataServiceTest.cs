@@ -4,6 +4,7 @@ using AutoFixture;
 using FakeItEasy;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using WeatherApi.Client;
 using WeatherApi.Model;
 using WeatherApi.Repository;
 using WeatherApi.Service;
@@ -16,6 +17,8 @@ namespace WeatherApi.Test.Data
         private Fixture _fixture;
         private ILogger<WeatherDataService> _logger;
         private IWeatherDataRepository _repository;
+        private IWeatherClient _client;
+        private IDateTimeProvider _dateTimeProvider;
         private WeatherDataService sut;
 
         [TestInitialize]
@@ -24,7 +27,9 @@ namespace WeatherApi.Test.Data
             _fixture = new Fixture();
             _logger = A.Fake<ILogger<WeatherDataService>>();
             _repository = A.Fake<IWeatherDataRepository>();
-            sut = new WeatherDataService(_logger, _repository);
+            _client = A.Fake<IWeatherClient>();
+            _dateTimeProvider = A.Fake<IDateTimeProvider>();
+            sut = new WeatherDataService(_logger, _repository, _client, _dateTimeProvider);
         }
 
         [TestMethod]
@@ -35,7 +40,7 @@ namespace WeatherApi.Test.Data
             A.CallTo(() => _repository.GetWeatherDataAsync()).Returns(dummyData.ToAsyncEnumerable());
 
             // Act
-            var result = await sut.GetAllWeatherDataAsync();
+            var result = await sut.LoadAllWeatherDataAsync();
 
             // Assert
             result.Should().NotBeNull();

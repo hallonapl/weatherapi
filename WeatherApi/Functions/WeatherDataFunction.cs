@@ -32,7 +32,7 @@ namespace WeatherApi.Functions
 
             try
             {
-                var data = await _weatherDataService.GetWeatherReportAsync(id);
+                var data = await _weatherDataService.LoadWeatherReportAsync(id);
                 return new OkObjectResult(data);
             }
             catch (BlobNotFoundException ex)
@@ -47,7 +47,7 @@ namespace WeatherApi.Functions
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unhandled exception in WeatherDataFunction: {exception}", ex.Message);
+                _logger.LogError("Unhandled exception: {exception}", ex.Message);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }

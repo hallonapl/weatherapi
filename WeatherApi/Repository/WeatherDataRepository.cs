@@ -76,9 +76,20 @@ namespace WeatherApi.Repository
             return result!;
         }
 
-        public Task SaveWeatherPayloadAsync(WeatherBlob blob)
+        public async Task SaveWeatherPayloadAsync(WeatherBlob blob)
         {
-            throw new Exception("Fail!");
+            try
+            {
+                var client = _clientFactory.CreateBlobServiceClient();
+                var container = client.GetBlobContainerClient(_settings.Value.WeatherDataContainerName);
+                using var blobStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(blob, SerializerOptions.PayloadSerializerOptions)));
+                await container.UploadBlobAsync(blob.Id.ToString(), blobStream);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Failed to save weather payload: {exception}", ex.Message);
+                throw new BlobNotSavedException("Failed to save weather blob");
+            }
         }
     }
 }

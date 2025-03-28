@@ -9,7 +9,8 @@ namespace WeatherApi.Service
 {
     public interface IWeatherLogService
     {
-        Task LogWeatherRequestAsync(Guid id, string name);
+        Task LogWeatherRequestAsync(Guid id, string description);
+        Task LogWeatherRequestFailureAsync(string description);
         Task<IEnumerable<WeatherRequestLog>> GetWeatherRequestLogsAsync();
 
     }
@@ -22,7 +23,12 @@ namespace WeatherApi.Service
 
         public Task LogWeatherRequestAsync(Guid id, string name)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
+        }
+
+        public Task LogWeatherRequestFailureAsync(string description)
+        {
+            return Task.CompletedTask;
         }
     }
 }
