@@ -29,8 +29,10 @@ It is implemented as a series of Azure Functions.
     Replace `<ResourceGroupName>` with the name of your Azure resource group.
 5. Open the WeatherApi/WeatherApi.sln solution in Visual Studio.
 6. Replace values in local.settings.json:
+    ```bash
     i. "WeatherClientSettings:ApiKey": <ApiKeyForOpenWeatherMap>,
     ii. "ConnectionStrings:StorageAccount": <StorageAccountConnectionString>
+    ```
     `<StorageAccountConnectionString>` is the connection string for the newly created storage account `weatherapistorage` in Azure Portal.
 
 ## Usage
