@@ -41,3 +41,7 @@ It is implemented as a series of Azure Functions.
 ## Endpoints
 - `GET http://localhost:7207/api/logs`: Fetch logs for all requests.
 - `GET http://localhost:7207/api/logs/<id>`: Fetch weather report with id <id>
+
+## Remaining work
+This project has no support for deploying the Azure Functions to Azure. In order to do this, you will need a Function App resource to deploy to. There is also no support for deploying settings for the functions, so those will have to be added manually.
+You also need to configure access for the Function App to the storage account.
